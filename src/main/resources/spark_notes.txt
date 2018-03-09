@@ -1,0 +1,182 @@
+#shared folder 
+sudo mount -t vboxsf shared /home/cloudera/shared
+
+#safemode off
+hadoop dfsadmin -safemode leave
+
+#start zookeper and kafka servers
+sudo service zookeeper-server restart
+sudo service kafka-server restart
+
+#create kafka queue
+sudo kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic SA103_IN
+sudo kafka-topics --delete --zookeeper localhost:2181 --topic SA103_IN
+
+
+#load data in kafka-topics
+kafka-console-producer --broker-list localhost:9092 --topic SA103_IN
+
+
+#read data 
+kafka-console-consumer --topic dummy --zookeeper localhost:2181
+
+#run jar
+
+
+spark-submit --master yarn-cluster --file IncomeTax.drl --class "com.hmrc.taxcalculator.TaxCalculatorMain" /home/cloudera/shared/HmrcTaxCalculator-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+
+spark-submit --master local[*] --class "com.hmrc.taxcalculator.TaxCalculatorMain" /home/cloudera/shared/HmrcTaxCalculator-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+
+spark-submit --class com.wordcount.DirectKafkaWordCount --master local[4] /mnt/hgfs/shared/databricks-0.0.1-jar-with-dependencies.jar localhost:9092 dummy 
+
+
+spark-submit --class com.spark.streaming.raj.ScalaWordCount --master local[4] /mnt/hgfs/shared/Streaming-0.0.1-SNAPSHOT-jar-with-dependencies.jar localhost:2181 group tax-topic 1
+
+spark-submit --class org.test.taxcompute.SimpleKafka --master local[4] /mnt/hgfs/shared/taxcompute-0.0.1-jar-with-dependencies.jar localhost:2181 group tax-topic 1
+
+spark-submit --packages org.apache.spark:spark-streaming-kafka_2.10:1.6.0 --class com.wordcount.KafkaWordCount --master local[4] /mnt/hgfs/shared/databricks-0.0.1-jar-with-dependencies.jar localhost:2181 group tax-topic 1
+
+
+spark-submit --class org.test.taxcompute.SimpleKafka --master local[1] /home/cloudera/shared/taxcompute-0.0.1-jar-with-dependencies.jar localhost:9092 localhost:2181 dummy group
+
+
+
+spark-submit --class "KafkaWordCount" --master local[4] target/scala-2.10/spark
+-kafka-project_2.10-1.0.jar localhost:2181 <group name> <topic name> <number of threads>
+
+
+
+sudo mount -t vboxsf shared /home/training/shared
+
+#to map all the port on vm to localhost 
+ssh root@192.168.0.39 -NL 8080:localhost:8080
+
+spark-submit --driver-java-options '-Dspark.executor.extraClassPath=/opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.1.0-incubating.jar' --master local[*]  --class org.drools.KafkaTaxStream drools-0.0.1-jar-with-dependencies.jar taxmsg.json 
+
+create 'testdata', {NAME=>'data'}, {NAME=>'aggreg'}
+
+
+
+spark-submit --driver-java-options '-Dspark.executor.extraClassPath=/opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.1.0-incubating.jar' --master local[*]  --class com.taxengine.TaxComputeStreaming drools-0.0.1-jar-with-dependencies.jar taxmsg.json 
+
+
+spark-submit --driver-java-options '-Dspark.executor.extraClassPath=/opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.1.0-incubating.jar' --master local[*]  --class com.taxengine.TaxCompute taxengine-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+ taxmsg.json 
+
+
+spark-submit --driver-java-options '-Dspark.executor.extraClassPath=/opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.1.0-incubating.jar' --master local[*] --files taxrule.xls --class org.drools.TaxStream drools-0.0.1-jar-with-dependencies.jar taxrule.xls 
+
+
+spark-submit --driver-class-path `hbase classpath` --class examples.HBaseSensorStream sparkstreamhbaseapp-1.0.jar
+spark-submit --driver-class-path `hbase classpath` --class examples.HBaseReadWrite sparkstreamhbaseapp-1.0.jar
+
+spark-submit --driver-java-options '-Dspark.executor.extraClassPath=/opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.1.0-incubating.jar'  --class examples.HBaseSensorStream sparkstreamhbaseapp-1.0-jar-with-dependencies.jar
+
+{NAME => 'aggreg', DATA_BLOCK_ENCODING => 'NONE', BLOOMFILTER => 'ROW', REPLICATION_SCOPE => '1', VERSIONS => '3', COMPRESSION => 'SNAPPY', MIN_VERSIONS => '0', TTL => 'FOREVER', KEEP_DELETED_CELLS
+ => 'FALSE', BLOCKSIZE => '65536', IN_MEMORY => 'false', BLOCKCACHE => 'true'}                                                                                                                       
+{NAME => 'data', DATA_BLOCK_ENCODING => 'NONE', BLOOMFILTER => 'ROW', REPLICATION_SCOPE => '1', VERSIONS => '3', COMPRESSION => 'SNAPPY', MIN_VERSIONS => '0', TTL => 'FOREVER', KEEP_DELETED_CELLS =
+> 'FALSE', BLOCKSIZE => '65536', IN_MEMORY => 'false', BLOCKCACHE => 'true'}            
+
+
+
+
+create 'taxcalculate', {NAME=>'data'}, {NAME=>'aggreg'}
+put 'taxcalculate','user1','aggreg:dated','01072016'
+put 'taxcalculate','user1','aggreg:ytdIncome','200'
+put 'taxcalculate','user1','aggreg:ytdExpense','100'
+put 'taxcalculate','user1','aggreg:ytdNetIncome','100'
+put 'taxcalculate','user1','aggreg:ytdTax','10'
+
+
+
+
+
+sudo mount -t vboxsf shared /home/cloudera/shared
+
+
+
+
+spark-submit --driver-java-options '-Dspark.executor.extraClassPath=/opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.1.0-incubating.jar' --master local[*] --files taxrule.xls --class org.drools.TaxStream drools-0.0.1-jar-with-dependencies.jar taxrule.xls  localhost:2181
+
+
+spark-submit --driver-java-options '-Dspark.executor.extraClassPath=/opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.1.0-incubating.jar' --master local[*] --files taxrule.xls --class org.drools.TaxStream drools-0.0.1-jar-with-dependencies.jar taxrule.xls  localhost:2181
+
+get 'taxdata', 'user1','cf1','cf1:income:toDouble'
+
+
+{HBASE_HOME}/bin/hbase-daemons.sh {start,stop} zookeeper
+
+create 'taxdata', {NAME => 'data', 'aggreg' , VERSIONS => 3, REPLICATION_SCOPE => 1, COMPRESSION => 'SNAPPY'}
+create 'taxdata', {NAME => 'data', VERSIONS => 3, REPLICATION_SCOPE => 1, COMPRESSION => 'SNAPPY'},{NAME => 'aggreg', VERSIONS => 3, REPLICATION_SCOPE => 1, COMPRESSION => 'SNAPPY'}
+
+spark-submit --driver-java-options '-Dspark.executor.extraClassPath=/opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.1.0-incubating.jar' --master yarn-client --files sepsis.xls --class com.cloudera.sprue.SepsisStream /root/sprue-0.0.1-SNAPSHOT-jar-with-dependencies.jar sepsis.xls host.domain:2181 http://host.domain:4242/api/put
+
+spark-submit --driver-java-options '-Dspark.executor.extraClassPath=/opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.1.0-incubating.jar' --master local[*] --files sepsis.xls --class com.cloudera.sprue.SepsisStream ~/shared/sprue-0.0.1-SNAPSHOT-jar-with-dependencies.jar sepsis.xls  localhost:2181 http://opentsdb.host.domain:4242/api/put
+
+spark-submit --driver-java-options '-Dspark.executor.extraClassPath=/opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.1.0-incubating.jar' --master local[*] --files sample.xls --class org.drools.SampleStream ~/shared/backup/drools-0.0.1-jar-with-dependencies.jar sample.xls  localhost:2181
+
+spark-submit --driver-java-options '-Dspark.executor.extraClassPath=/opt/cloudera/parcels/CDH/lib/hbase/lib/htrace-core-3.1.0-incubating.jar' --master local[*] --files taxrule.xls --class org.drools.TaxStream drools-0.0.1-jar-with-dependencies.jar taxrule.xls  localhost:2181
+
+
+$sample.getTax(((double)$sample.getIncome())*$param);
+
+
+sudo service hbase-thrift stop
+sudo service hadoop-hbase-regionserver stop
+sudo service hbase-master stop
+
+kafka-console-producer --broker-list localhost:9092 --topic tax-topic
+
+{"header":{"id":"111","name":"vinod"},"submission":{"income":1100,"startdate":"06-01-2017","expenses":0}}
+{"header":{"id":"111","name":"vinod"},"submission":{"income":2100,"startdate":"06-01-2017","expenses":0}}
+{"header":{"id":"111","name":"vinod"},"submission":{"income":3100,"startdate":"07-01-2017","expenses":0}}
+{"header":{"id":"111","name":"vinod"},"submission":{"income":400,"startdate":"07-01-2017","expenses":0}}
+{"header":{"id":"111","name":"vinod"},"submission":{"income":100,"startdate":"08-01-2017","expenses":0}}
+{"header":{"id":"111","name":"vinod"},"submission":{"income":500,"startdate":"08-01-2017","expenses":0}}
+{"header":{"id":"222","name":"jay"},"submission":{"income":100,"startdate":"06-01-2017","expenses":0}}
+{"header":{"id":"222","name":"jay"},"submission":{"income":200,"startdate":"06-01-2017","expenses":0}}
+{"header":{"id":"222","name":"jay"},"submission":{"income":300,"startdate":"07-01-2017","expenses":0}}
+{"header":{"id":"222","name":"jay"},"submission":{"income":400,"startdate":"07-01-2017","expenses":0}}
+{"header":{"id":"222","name":"jay"},"submission":{"income":500,"startdate":"08-01-2017","expenses":0}}
+{"header":{"id":"222","name":"jay"},"submission":{"income":500,"startdate":"08-01-2017","expenses":0}}
+
+
+
+
+
+
+spark-submit --master local[2] --class org.test.sparkdemo.Taxparse target/sparkdemo-0.0.1-jar-with-dependencies.jar
+
+
+https://chimpler.wordpress.com/2014/07/01/implementing-a-real-time-data-pipeline-with-spark-streaming/
+
+https://www.mapr.com/blog/spark-streaming-hbase
+
+
+#create a topic to store all the messages
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic tax-topic
+
+#load data in kafka-topics
+kafka-console-producer --broker-list localhost:9092 --topic tax-topic
+
+
+{"timestamp":1466002790962,"publisher":"publisher_4","advertiser":"advertiser_1","website":"website_2684","geo":"CA","bid":0.28173999061042954,"cookie":"cookie_818"}
+{"timestamp":1466002790962,"publisher":"publisher_0","advertiser":"advertiser_1","website":"website_8739","geo":"MI","bid":0.6667403686563862,"cookie":"cookie_164"}
+{"timestamp":1466002790962,"publisher":"publisher_1","advertiser":"advertiser_0","website":"website_2294","geo":"HI","bid":0.38870052956593637,"cookie":"cookie_3529"}
+{"timestamp":1466002790962,"publisher":"publisher_1","advertiser":"advertiser_0","website":"website_4316","geo":"CA","bid":0.20333436333188182,"cookie":"cookie_5670"}
+{"timestamp":1466002790962,"publisher":"publisher_4","advertiser":"advertiser_2","website":"website_9825","geo":"FL","bid":0.43501705022712933,"cookie":"cookie_7036"}
+{"timestamp":1466002790962,"publisher":"publisher_4","advertiser":"advertiser_1","website":"website_4423","geo":"CA","bid":0.08709589393344352,"cookie":"cookie_9981"}
+
+
+#run streaming jar 
+spark-submit --class examples.TaxCalculateCore ~/sharedata/sparkstreamhbaseapp-1.0-jar-with-dependencies.jar
+spark-submit --class org.test.sparkstream.TaxCalculateCore ~/sharedata/sparkstream-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+spark-submit --class org.test.sparkstream.TaxCompute ./target/sparkstream-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+spark-submit --class org.test.sparkstream.TaxCompute ~/sharedata/sparkstream-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+spark-submit --class org.test.sparkstream.LogAggregator ~/sharedata/sparkstream-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+
+LogAggregator
+#read consumer
+kafka-console-consumer --topic adnetwork-topic --zookeeper localhost:2181 --from-beginning
+
+
