@@ -13,6 +13,7 @@ class Employee:
     def displayEmployee(self):
         print ("Name : ", self.name, ", Salary: ", self.salary)
 
+
 if __name__ == '__main__':
     emp = Employee("vinod",50)
     emp.displayEmployee()
